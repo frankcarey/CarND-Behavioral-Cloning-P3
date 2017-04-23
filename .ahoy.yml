@@ -1,0 +1,20 @@
+ahoyapi: v2
+commands:
+  up:
+    cmd: |
+      nvidia-docker run --rm -it \
+        -p 8888:8888 \
+        -p 6006:6006 \
+        -p 4567:4567 \
+        --name tf-gpu \
+        -v `pwd`:/notebooks \
+        tensorflow/tensorflow:1.0.1-gpu-py3 
+
+  cmd:
+    cmd: docker exec -it tf-gpu "$@"
+
+  bash:
+    cmd: ahoy cmd bash
+
+  deps:
+    cmd: ahoy cmd pip install -r requirements.txt
