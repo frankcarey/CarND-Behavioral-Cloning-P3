@@ -28,3 +28,7 @@ commands:
   drive:
     usage: Run the python script for the driving simulator
     cmd: ahoy cmd python drive.py ./data/model.h5
+
+  sim:
+    usage: Start the simulator
+    cmd: ~/CarND-Simulator/linux_sim.x86_64 &
