@@ -1,0 +1,4 @@
+#Copy this file to /etc/protocols if necessary
+
+tcp 6 TCP
+udp 17 UDP
