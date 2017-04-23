@@ -17,4 +17,14 @@ commands:
     cmd: ahoy cmd bash
 
   deps:
-    cmd: ahoy cmd pip install -r requirements.txt
+    cmd: |
+      ahoy cmd pip install -r requirements.txt
+      ahoy cmd cp protocols /etc/protocols
+
+  train:
+    usage: Run the training
+    cmd: ahoy cmd python train.py
+
+  drive:
+    usage: Run the python script for the driving simulator
+    cmd: ahoy cmd python drive.py ./data/model.h5

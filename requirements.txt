@@ -1,1 +1,6 @@
 keras
+opencv-python
+h5py
+flask
+eventlet
+python-socketio
