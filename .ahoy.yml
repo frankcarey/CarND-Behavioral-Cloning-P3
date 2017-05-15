@@ -8,7 +8,7 @@ commands:
         -p 4567:4567 \
         --name tf-gpu \
         -v `pwd`:/notebooks \
-        tensorflow/tensorflow:1.0.1-gpu-py3 
+        tensorflow/tensorflow:1.1.0-gpu-py3 
 
   cmd:
     cmd: docker exec -it tf-gpu "$@"
