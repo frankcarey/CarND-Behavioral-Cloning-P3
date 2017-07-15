@@ -104,6 +104,7 @@ def data_generator(X, y, batch_size=128, crop=None, normalize=None):
                 #print("orig_idx", orig_idx)
                 #flip_idx = j + nb_batch_items
                 img = cv2.imread(filename)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 # if crop:
                 #     start_y = crop[0][0]
                 #     stop_y = height + start_y

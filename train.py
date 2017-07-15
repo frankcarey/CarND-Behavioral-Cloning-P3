@@ -3,14 +3,14 @@ import math
 import utils
 
 # TUnable Parameters
-batch_size = 256 #2048
-epochs = 2 #20
+batch_size = 64 #2048
+epochs = 3 #20
 learning_rate = None #0.0005
-l2_reg = 0.0
+l2_reg = 0.0001
 cam_adj = 0.10
 # nb_derivatives = 2
 #train_folder = './data/example_training'
-train_folder = './data/example_training'
+train_folder = './data/train_3'
 act="elu"
 pad="valid"
 
@@ -36,28 +36,36 @@ model = Sequential()
 model.add(Lambda(lambda x: x / 127.5 -1, input_shape=(160, 320, 3)))
 model.add(Cropping2D(cropping=((50, 20), (0,0))))
 #model.add(GaussianNoise(0.1))
-model.add(Conv2D(24, 5, strides=(2, 2), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
-model.add(Dropout(0.25))
-model.add(Conv2D(36, 5, strides=(2, 2), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
-model.add(Dropout(0.25))
-model.add(Conv2D(48, 5, strides=(2, 2), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
-model.add(Dropout(0.25))
-model.add(Conv2D(64, 3, strides=(1, 1), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
-model.add(Dropout(0.25))
-model.add(Conv2D(64, 3, strides=(1, 1), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
-model.add(Dropout(0.25))
+model.add(Conv2D(24, 5, strides=1, padding=pad, activation=act))
+#model.add(MaxPooling2D())
+model.add(Conv2D(36, 5, strides=1, padding=pad, activation=act))
+#model.add(MaxPooling2D())
+#model.add(Dropout(0.25))
+# Works somewhat but twitchy with one layer, trying two
+# model.add(Conv2D(5, 2, strides=1, padding=pad, activation=act))
+# model.add(MaxPooling2D())
+# model.add(Dropout(0.25))
+# model.add(Conv2D(32, 5, strides=1, padding=pad, activation=act))
+# model.add(MaxPooling2D())
+# model.add(Dropout(0.25))
+# model.add(Conv2D(48, 5, strides=(2, 2), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
+# model.add(Dropout(0.25))
+# model.add(Conv2D(64, 3, strides=(1, 1), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
+# model.add(Dropout(0.25))
+# model.add(Conv2D(64, 3, strides=(1, 1), padding=pad, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
+# model.add(Dropout(0.25))
 
 #model.add(MaxPooling2D())
 model.add(Flatten())
-model.add(Dropout(0.25))
-model.add(Dense(100, kernel_regularizer=regularizers.l2(l2_reg), activation=act))
-model.add(Dropout(0.25))
-model.add(Dense(50, kernel_regularizer=regularizers.l2(l2_reg), activation=act))
-model.add(Dropout(0.25))
-model.add(Dense(10, kernel_regularizer=regularizers.l2(l2_reg), activation=act))
+# model.add(Dropout(0.25))
+model.add(Dense(100, activation=act, kernel_regularizer=regularizers.l2(l2_reg)))
+# model.add(Dropout(0.25))
+model.add(Dense(50, activation=act))
+# model.add(Dropout(0.25))
+model.add(Dense(10, activation=act))
 #model.add(Dropout(0.25))
 #model.add(GaussianNoise(0.1))
-model.add(Dense(1, kernel_regularizer=regularizers.l2(l2_reg), activation=act))
+model.add(Dense(1, activation=act))
 
 
 
