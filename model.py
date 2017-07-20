@@ -13,7 +13,7 @@ from keras.layers import Activation, Dense, Dropout, ELU, Flatten, Input, Lambda
 from keras.layers.convolutional import Convolution2D, Cropping2D
 from keras.models import Sequential, Model, load_model, model_from_json
 from keras.regularizers import l2
-
+from keras.models import load_model
 
 def get_csv_data(log_file):
     """
@@ -177,6 +177,8 @@ if __name__=="__main__":
     batch_size = 64 #2048
     epochs = 28 #20
     train_folder = './data/example_training'
+    model_path = 'model.h5'
+    retrain = True
 
     # Get the training data from log file, shuffle, and split into train/validation datasets
     X_train, y_train = get_csv_data(train_folder + '/driving_log.csv')
@@ -192,7 +194,10 @@ if __name__=="__main__":
     print("Training steps per epoch: ")
 
     # Get model, print summary, and train using a generator
-    model = get_model()
+    if retrain == True:
+        model = load_model(model_path)
+    else:
+        model = get_model()
     model.summary()
     model.fit_generator(generate_batch(X_train, y_train),
                         #samples_per_epoch=24000,
@@ -207,7 +212,7 @@ if __name__=="__main__":
 
     print('Saving model weights and configuration file.')
     # Save model weights
-    model.save('model.h5')
+    model.save(model_path)
     # Save model architecture as json file
     #with open('model.json', 'w') as outfile:
     #    json.dump(model.to_json(), outfile)
