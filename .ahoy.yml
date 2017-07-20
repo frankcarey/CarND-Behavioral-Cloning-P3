@@ -25,10 +25,17 @@ commands:
     usage: Run the training
     cmd: ahoy cmd python train.py
 
+  train2:
+    usage: Run the training
+    cmd: ahoy cmd python model.py
+
   drive:
     usage: Run the python script for the driving simulator
     cmd: ahoy cmd python drive.py ./data/model.h5
 
+  drive2:
+    usage: Run the python script for the driving simulator
+    cmd: ahoy cmd python drive.py model.h5
   sim:
     usage: Start the simulator
     cmd: ~/CarND-Simulator/linux_sim.x86_64 &
