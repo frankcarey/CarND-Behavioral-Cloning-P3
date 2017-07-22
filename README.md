@@ -3,6 +3,7 @@
 # Behavioral Cloning Project
 
 <a href="https://vimeo.com/226242722"><img src="./images/finalgif.gif" width="600px"></a>
+
 [Full video on Vimeo](https://vimeo.com/226242722)
 
 The goals / steps of this project are the following:
@@ -104,9 +105,9 @@ The data is first split into a 90%-10% training and validation set. Then a gener
 
 By capturing and image from the left, center, and right cameras at the same time, The left and right cameras can then be used as additional data points. For example, if the left camera image is used as an input, I adjust the steering angle by adding `0.275` radians to the measured steering angle, effectively telling the model that it should turn more to the right (or less to the left) if it encounters an input image like that.
 
-<img src="./images/left.png" width="300px">
-<img src="./images/center.png" width="300px">
-<img src="./images/right.png" width="300px">
+<img src="./images/left.jpg" width="300px">
+<img src="./images/center.jpg" width="300px">
+<img src="./images/right.jpg" width="300px">
 
 To further augment the data set, I also randomize the brightness by converting from RGB to HSV and increasing or decreasing the brightness before converting it back to RGB for input into the model.
 
