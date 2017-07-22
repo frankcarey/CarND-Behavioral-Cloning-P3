@@ -3,8 +3,6 @@ import numpy as np
 import random
 import csv
 import cv2
-import json
-import h5py
 import math
 
 from sklearn.utils import shuffle
@@ -15,14 +13,16 @@ from keras.models import Sequential, Model, load_model, model_from_json
 from keras.regularizers import l2
 from keras.models import load_model
 
-def get_csv_data(log_file):
+def get_training_data(log_file, steering_offset):
     """
     Reads a csv file and returns two lists separated into examples and labels.
     :param log_file: The path of the log file to be read.
+
+    Note: This version from https://github.com/ncondo
     """
     image_names, steering_angles = [], []
     # Steering offset used for left and right images
-    steering_offset = 0.275
+
     with open(log_file, 'r') as f:
         reader = csv.reader(f)
         next(reader, None)
@@ -34,18 +34,22 @@ def get_csv_data(log_file):
     return image_names, steering_angles
 
 
-def generate_batch(X_train, y_train, batch_size=64):
+def generate_batch(X_train, y_train, samples=64):
     """
     Return two numpy arrays containing images and their associated steering angles.
-    :param X_train: A list of image names to be read in from data directory.
-    :param y_train: A list of steering angles associated with each image.
-    :param batch_size: The size of the numpy arrays to be return on each pass.
+        X_train: A list of image names to be read in from data directory.
+        y_train: A list of steering angles associated with each image.
+        samples: The size of the numpy arrays to be return on each pass.
+
+    This is a simpler version as it only outputs the number of samples you request
+    and it randomly samples over the training data that's passed in.
+    Note: This simpler version from https://github.com/ncondo
     """
-    images = np.zeros((batch_size, 160, 320, 3), dtype=np.float32)
-    angles = np.zeros((batch_size,), dtype=np.float32)
+    images = np.zeros((samples, 160, 320, 3), dtype=np.float32)
+    angles = np.zeros((samples,), dtype=np.float32)
     while True:
         straight_count = 0
-        for i in range(batch_size):
+        for i in range(samples):
             # Select a random index to use for data sample
             sample_index = random.randrange(len(X_train))
             image_index = random.randrange(len(X_train[0]))
@@ -60,7 +64,7 @@ def generate_batch(X_train, y_train, batch_size=64):
             # Read image in from directory, process, and convert to numpy array
             img_path = train_folder + '/' + str(X_train[sample_index][image_index])
             image = cv2.imread(img_path)
-            #print(img_path)
+            print(img_path)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = process_image(image)
             image = np.array(image, dtype=np.float32)
@@ -72,15 +76,6 @@ def generate_batch(X_train, y_train, batch_size=64):
             angles[i] = angle
         yield images, angles
 
-
-def resize(image):
-    """
-    Returns an image resized to match the input size of the network.
-    :param image: Image represented as a numpy array.
-    """
-    return cv2.resize(image, (200, 66), interpolation=cv2.INTER_AREA)
-
-
 def normalize(image):
     """
     Returns a normalized image with feature values from -1.0 to 1.0.
@@ -89,18 +84,12 @@ def normalize(image):
     return image / 127.5 - 1.
 
 
-def crop_image(image):
-    """
-    Returns an image cropped 40 pixels from top and 20 pixels from bottom.
-    :param image: Image represented as a numpy array.
-    """
-    return image[40:-20,:]
-
-
 def random_brightness(image):
     """
     Returns an image with a random degree of brightness.
     :param image: Image represented as a numpy array.
+
+    Note: From https://github.com/ncondo
     """
     image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     brightness = .25 + np.random.uniform()
@@ -115,21 +104,34 @@ def process_image(image):
     :param image: Image represented as a numpy array.
     """
     image = random_brightness(image)
-    #image = crop_image(image)
-    #image = resize(image)
+    # Cropping and
     return image
 
 
 def get_model():
     """
     Returns a compiled keras model ready for training.
+
+    This version based on https://github.com/ncondo, which is the NVIDIA
+    self-driving model. I updated it for keras 2 and to have cropping happen in the model.
+
+    Differences that may matter:
+    - I was using the new Conv2D() layers vs Convolution2D
+    - Adding small amounts of dropout at the beginning, then up to 50% at the last FC layers.
+    - He doesn't add any MaxPooling layers (unless that's somehow included)
+
+    Seems irrelevant differences might be:
+    - init='he_normal'
+    - subsample=(2, 2) (I was using strides)
+    - border_mode='valid' ( I was setting the padding)
+    -  W_regularizer=l2(0.001) (I was trying with kernel_regularizer=regularizers.l2(l2_reg))
+
     """
     model = Sequential([
         # Normalize image to -1.0 to 1.0
         Lambda(normalize, input_shape=(160, 320, 3)),
-
+        # Crop the image as part of the model by removing 40px off the top and 20px from the bottom of the image.
         Cropping2D(cropping=((40, 20), (0,0))),
-
         # Convolutional layer 1 24@31x98 | 5x5 kernel | 2x2 stride | elu activation
         Convolution2D(24, 5, 5, border_mode='valid', activation='elu', subsample=(2, 2), init='he_normal', W_regularizer=l2(0.001)),
         # Dropout with drop probability of .1 (keep probability of .9)
@@ -173,51 +175,49 @@ def get_model():
 
 if __name__=="__main__":
 
-    # TUnable Parameters
-    batch_size = 64 #2048
+    # Tunable Parameters
+    batch_size = 64 # It turns out that setting this to a higher number (512 for instance) makes the model converge SLOWER!
     epochs = 28 #20
-    train_folder = './data/example_training'
+    #train_folder = './data/example_training'
+    train_folder = './data/train_3'
     model_path = 'model.h5'
+    steering_offset = 0.275
+    random_state = 14
     retrain = True
+    test_split = 0.1
 
     # Get the training data from log file, shuffle, and split into train/validation datasets
-    X_train, y_train = get_csv_data(train_folder + '/driving_log.csv')
-    X_train, y_train = shuffle(X_train, y_train, random_state=14)
-    X_train, X_validation, y_train, y_validation = train_test_split(X_train, y_train, test_size=0.1, random_state=14)
+    X_train, y_train = get_training_data(train_folder + "/driving_log.csv", steering_offset)
+    X_train, y_train = shuffle(X_train, y_train, random_state=random_state)
+    X_train, X_validation, y_train, y_validation = train_test_split(X_train, y_train, test_size=test_split, random_state=random_state)
 
-    #train_steps = math.ceil(len(X_train)/batch_size)
     train_steps = math.ceil(len(X_train)/batch_size)
-
-
     valid_steps = math.ceil(len(X_validation)/batch_size)
 
     print("Training steps per epoch: ")
 
-    # Get model, print summary, and train using a generator
+    # Get model either a new one (compiled) or load an existing one for further training.
     if retrain == True:
         model = load_model(model_path)
     else:
         model = get_model()
+
+    # Print the summmary of layers and params.
     model.summary()
+
+    # Fit using a generator.
     model.fit_generator(generate_batch(X_train, y_train),
-                        #samples_per_epoch=24000,
-                        #nb_epoch=28,
-                        #validation_data=generate_batch(X_validation, y_validation),
-                        #nb_val_samples=1024
                         steps_per_epoch=train_steps,
-                        validation_data=generate_batch(X_validation, y_validation, batch_size=batch_size),
+                        validation_data=generate_batch(X_validation, y_validation, samples=batch_size),
                         validation_steps=valid_steps,
                         epochs=epochs
                         )#, callbacks=[early_stop])
 
-    print('Saving model weights and configuration file.')
-    # Save model weights
+    print('Saving model..')
     model.save(model_path)
-    # Save model architecture as json file
-    #with open('model.json', 'w') as outfile:
-    #    json.dump(model.to_json(), outfile)
 
     # Explicitly end tensorflow session
+    # Not sure if this is still needed?
     from keras import backend as K
 
     K.clear_session()

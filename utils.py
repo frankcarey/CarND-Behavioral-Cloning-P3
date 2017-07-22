@@ -1,3 +1,5 @@
+### This file is deprecated, see model.py for all commands.
+
 import csv
 import cv2
 import numpy as np

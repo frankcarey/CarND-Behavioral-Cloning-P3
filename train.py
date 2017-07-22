@@ -1,3 +1,5 @@
+### This file is deprecated, see model.py for all commands.
+
 from sklearn.model_selection import train_test_split
 import math
 import utils
@@ -9,8 +11,8 @@ learning_rate = None #0.0005
 l2_reg = 0.0001
 cam_adj = 0.10
 # nb_derivatives = 2
-#train_folder = './data/example_training'
-train_folder = './data/train_3'
+train_folder = './data/example_training'
+#train_folder = './data/train_3'
 act="elu"
 pad="valid"
 
