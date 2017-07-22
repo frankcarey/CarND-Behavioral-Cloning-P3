@@ -2,7 +2,8 @@
 
 # Behavioral Cloning Project
 
-<img src="./images/finalgif.gif" width="600px">
+<a href="https://vimeo.com/226242722"><img src="./images/finalgif.gif" width="600px"></a>
+[Full video on Vimeo](https://vimeo.com/226242722)
 
 The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
